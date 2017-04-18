@@ -6,7 +6,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
@@ -26,7 +28,6 @@ public class PrepareCode {
   }
 
   public void prepare(String project) throws Exception {
-
     FileRepositoryBuilder builder = new FileRepositoryBuilder();
     String projectDir = dir + project + '/';
     Repository repo = builder.setGitDir(new File(projectDir + ".git"))
@@ -39,6 +40,7 @@ public class PrepareCode {
 
   private void getModifiedFiles(String commit, String projectDir, String project)
       throws Exception {
+    Util.log(commit);
     String cmd = "git diff-tree --no-commit-id --name-status -r " + commit;
     BufferedReader br = Execute.execWithOutput(cmd, projectDir);
     if (br == null) {
@@ -50,7 +52,7 @@ public class PrepareCode {
       if (line.length() > 5 && line.charAt(0) == 'M' &&
           line.substring(line.length() - 5).equals(".java")) {
         String filename = line.substring(2);
-        //Util.log(filename);
+        Util.log(filename);
         checkoutCommit(commit, filename, projectDir, project);
       }
     }
@@ -59,17 +61,27 @@ public class PrepareCode {
   // Check out filename before and at some commit. Write change pairs to fs.
   private void checkoutCommit(String commit, String filename, String projectDir, String project)
       throws Exception {
-    checkoutCommit0(commit, "^ -- ", filename, projectDir, project, "old");
-    checkoutCommit0(commit, " -- ", filename, projectDir, project, "new");
+    File dir = new File(pairDir + project + '/' + commit);
+    if (!dir.exists()) dir.mkdir();
+    File oldDir = new File(dir, "old");
+    File newDir = new File(dir, "new");
+    if (!oldDir.exists()) oldDir.mkdir();
+    if (!newDir.exists()) newDir.mkdir();
+
+    checkoutCommit0(commit, "^ -- ", filename, projectDir, project, oldDir);
+    checkoutCommit0(commit, " -- ", filename, projectDir, project, newDir);
   }
 
   private void checkoutCommit0(String commit, String cmdpart, String filename,
-      String projectDir, String project, String path)
+      String projectDir, String project, File dir)
       throws Exception {
     String cmd = "git checkout " + commit + cmdpart + filename;
     Execute.execIgnoreOutput(cmd, projectDir);
     String fullFilename = projectDir + filename;
     String content = new String(Files.readAllBytes(Paths.get(fullFilename)));
-
+    filename = filename.substring(filename.lastIndexOf('/'));
+    BufferedWriter bw = new BufferedWriter(new FileWriter(new File(dir, filename)));
+    bw.write(content);
+    bw.close();
   }
 }
