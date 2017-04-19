@@ -2,14 +2,14 @@ package com.yfy.cpfinder;
 
 import com.github.gumtreediff.actions.ActionGenerator;
 import com.github.gumtreediff.actions.model.Action;
-import com.github.gumtreediff.client.Run;
-import com.github.gumtreediff.gen.Generators;
 import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
 import com.github.gumtreediff.matchers.Mapping;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
 import com.github.gumtreediff.tree.ITree;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jdt.core.dom.*;
 
 import java.io.File;
 import java.util.List;
@@ -37,6 +37,27 @@ public class Compare {
   }
 
   private void compareFile(File file1, File file2) throws Exception {
+    ASTNode n1 = parse(file1);
+    ASTNode n2 = parse(file2);
+    n1.accept();
+  }
+
+  private ASTNode parse(File file) throws Exception {
+    ASTParser parser = ASTParser.newParser(AST.JLS8);
+    String content = FileUtils.readFileToString(file);
+    parser.setSource(content.toCharArray());
+    parser.setKind(ASTParser.K_COMPILATION_UNIT);
+    ASTNode ast = parser.createAST(null);
+    ast.accept(new ASTVisitor() {
+      @Override
+      public boolean visit(MethodDeclaration node) {
+        Util.log(node.getName());
+        return true;
+      }
+    });
+  }
+
+  private void compareFile2(File file1, File file2) throws Exception {
     ITree src = new JdtTreeGenerator().generateFromFile(file1).getRoot();
     ITree dst = new JdtTreeGenerator().generateFromFile(file2).getRoot();
     Matcher m = Matchers.getInstance().getMatcher(src, dst);
@@ -46,8 +67,9 @@ public class Compare {
     for (Mapping map : ms) {
       ITree t1 = map.getFirst();
       ITree t2 = map.getSecond();
-      Util.log(t1.getLabel());
-      Util.log(t2.getLabel());
+      Util.log(t1.getType() + " " + t2.getType());
+//      Util.log(t1.getLabel());
+//      Util.log(t2.getLabel());
 //      Util.log(t1.toTreeString());
 //      Util.log(t2.toTreeString());
     }
@@ -58,5 +80,9 @@ public class Compare {
     for (Action ac : actions) {
       //Util.log(ac.toString());
     }
+  }
+
+  public static void main(String[] args) throws Exception {
+    new Compare().compare();
   }
 }
