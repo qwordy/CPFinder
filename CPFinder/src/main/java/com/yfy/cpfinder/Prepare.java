@@ -18,18 +18,14 @@ import java.util.List;
  * Created by yfy on 2017/4/18.
  * Prepare change code pairs for analysis
  */
-public class PrepareCode {
-  private String dir = "../projects/";
-
-  private String pairDir = "../pairs/";
-
+public class Prepare {
   public void prepare() throws Exception {
     prepare("hadoop");
   }
 
   public void prepare(String project) throws Exception {
     FileRepositoryBuilder builder = new FileRepositoryBuilder();
-    String projectDir = dir + project + '/';
+    String projectDir = Config.projectDir + project + '/';
     Repository repo = builder.setGitDir(new File(projectDir + ".git"))
         .setMustExist(true).build();
     Git git = new Git(repo);
@@ -61,7 +57,7 @@ public class PrepareCode {
   // Check out filename before and at some commit. Write change pairs to fs.
   private void checkoutCommit(String commit, String filename, String projectDir, String project)
       throws Exception {
-    File dir = new File(pairDir + project + '/' + commit);
+    File dir = new File(Config.pairDir + project + '/' + commit);
     if (!dir.exists()) dir.mkdir();
     File oldDir = new File(dir, "old");
     File newDir = new File(dir, "new");
