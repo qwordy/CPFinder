@@ -20,8 +20,22 @@ repositories {
 }
 
 dependencies {
+  compile fileTree(dir: 'lib', include: '*.jar')
+
   // https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit
   compile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '4.7.0.201704051617-r'
+
+//  // https://mvnrepository.com/artifact/com.github.gumtreediff/core
+//  compile group: 'com.github.gumtreediff', name: 'core', version: '2.0.0'
+//
+//  // https://mvnrepository.com/artifact/com.github.gumtreediff/gen.jdt
+//  compile group: 'com.github.gumtreediff', name: 'gen.jdt', version: '2.0.0'
+//
+//  // https://mvnrepository.com/artifact/com.github.gumtreediff/client
+//  compile group: 'com.github.gumtreediff', name: 'client', version: '2.0.0'
+//
+//  // https://mvnrepository.com/artifact/com.github.gumtreediff/client.diff
+//  compile group: 'com.github.gumtreediff', name: 'client.diff', version: '2.0.0'
 
   // The production code uses Guava
   compile 'com.google.guava:guava:20.0'

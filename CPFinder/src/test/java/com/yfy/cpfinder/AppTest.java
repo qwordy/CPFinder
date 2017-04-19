@@ -10,7 +10,12 @@ import static org.junit.Assert.*;
 public class AppTest {
   @Test
   public void prepareCode() throws Exception {
-    new PrepareCode().prepare();
+    new Prepare().prepare();
+  }
+
+  @Test
+  public void compareCode() throws Exception {
+    new Compare().compare();
   }
 
   @Test
