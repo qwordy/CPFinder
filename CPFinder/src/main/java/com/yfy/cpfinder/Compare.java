@@ -8,6 +8,8 @@ import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
 import com.github.gumtreediff.tree.ITree;
+import gumtree.spoon.AstComparator;
+import gumtree.spoon.diff.Diff;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.*;
 
@@ -31,18 +33,19 @@ public class Compare {
       for (File oldJavaFile : oldDir.listFiles()) {
         String filename = oldJavaFile.getName();
         File newJavaFile = new File(newDir, filename);
-        compareFile(oldJavaFile, newJavaFile);
+        compareFileJdt(oldJavaFile, newJavaFile);
       }
     }
   }
 
-  private void compareFile(File file1, File file2) throws Exception {
-    ASTNode n1 = parse(file1);
-    ASTNode n2 = parse(file2);
-    n1.accept();
+
+
+  private void compareFileJdt(File file1, File file2) throws Exception {
+    ASTNode n1 = parseJdt(file1);
+    ASTNode n2 = parseJdt(file2);
   }
 
-  private ASTNode parse(File file) throws Exception {
+  private ASTNode parseJdt(File file) throws Exception {
     ASTParser parser = ASTParser.newParser(AST.JLS8);
     String content = FileUtils.readFileToString(file);
     parser.setSource(content.toCharArray());
@@ -51,13 +54,21 @@ public class Compare {
     ast.accept(new ASTVisitor() {
       @Override
       public boolean visit(MethodDeclaration node) {
-        Util.log(node.getName());
+        Util.log("[method] " + node.getName());
+        node.accept(new ASTVisitor() {
+          @Override
+          public boolean visit(MethodInvocation node) {
+            Util.log(node);
+            return true;
+          }
+        });
         return true;
       }
     });
+    return ast;
   }
 
-  private void compareFile2(File file1, File file2) throws Exception {
+  private void compareFileGumtree(File file1, File file2) throws Exception {
     ITree src = new JdtTreeGenerator().generateFromFile(file1).getRoot();
     ITree dst = new JdtTreeGenerator().generateFromFile(file2).getRoot();
     Matcher m = Matchers.getInstance().getMatcher(src, dst);
@@ -80,6 +91,12 @@ public class Compare {
     for (Action ac : actions) {
       //Util.log(ac.toString());
     }
+  }
+
+  private void compareFileGumtreeSpoon(File file1, File file2) throws Exception {
+    AstComparator diff = new AstComparator();
+    Diff result = diff.compare(file1, file2);
+    result.getAllOperations();
   }
 
   public static void main(String[] args) throws Exception {
