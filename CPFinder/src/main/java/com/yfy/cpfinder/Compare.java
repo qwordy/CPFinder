@@ -1,20 +1,12 @@
 package com.yfy.cpfinder;
 
-import com.github.gumtreediff.actions.ActionGenerator;
-import com.github.gumtreediff.actions.model.Action;
-import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
-import com.github.gumtreediff.matchers.Mapping;
-import com.github.gumtreediff.matchers.MappingStore;
-import com.github.gumtreediff.matchers.Matcher;
-import com.github.gumtreediff.matchers.Matchers;
-import com.github.gumtreediff.tree.ITree;
-import gumtree.spoon.AstComparator;
-import gumtree.spoon.diff.Diff;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.*;
 
 import java.io.File;
-import java.util.List;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by yfy on 4/19/17.
@@ -38,37 +30,67 @@ public class Compare {
     }
   }
 
-
-
   private void compareFileJdt(File file1, File file2) throws Exception {
-    ASTNode n1 = parseJdt(file1);
-    ASTNode n2 = parseJdt(file2);
+    Map<String, MethodData> map1 = parseJdt(file1);
+    Map<String, MethodData> map2 = parseJdt(file2);
+    for (String key : map1.keySet()) {
+      MethodData md2 = map2.get(key);
+      if (md2 != null) {
+        MethodData md1 = map1.get(key);
+        if (md1.length > md2.length && md1.callNum < md2.callNum) {
+          Util.log("Compare");
+          Util.log(md1);
+          Util.log(md2);
+        }
+      }
+    }
   }
 
-  private ASTNode parseJdt(File file) throws Exception {
+  private int callNum;
+
+  private Map<String, MethodData> parseJdt(File file) throws Exception {
     ASTParser parser = ASTParser.newParser(AST.JLS8);
-    String content = FileUtils.readFileToString(file);
+    String content = FileUtils.readFileToString(file, Charset.defaultCharset());
     parser.setSource(content.toCharArray());
     parser.setKind(ASTParser.K_COMPILATION_UNIT);
+    parser.setResolveBindings(true);
+    parser.setBindingsRecovery(true);
     ASTNode ast = parser.createAST(null);
+    Map<String, MethodData> map = new HashMap<>();
     ast.accept(new ASTVisitor() {
       @Override
       public boolean visit(MethodDeclaration node) {
-        Util.log("[method] " + node.getName());
+        if (node.getBody() == null) return true;
+        MethodData methodData = new MethodData();
+        callNum = 0;
         node.accept(new ASTVisitor() {
           @Override
           public boolean visit(MethodInvocation node) {
-            Util.log(node);
+            Util.log("[invoke] " + node);
+            Expression exp = node.getExpression();
+            if (exp != null) Util.log(exp.resolveTypeBinding());
+            Util.log(exp);
+            Util.log(node.getName());
+            callNum++;
             return true;
           }
         });
+        String signature = Util.signature(node);
+        //Util.log("[method] " + signature);
+        methodData.callNum = callNum;
+        methodData.length = node.getBody().getLength();
+        methodData.name = node.getName().toString();
+        methodData.signature = signature;
+        methodData.code = node.toString();
+        //Util.log(methodData);
+        map.put(signature, methodData);
         return true;
       }
     });
-    return ast;
+    return map;
   }
 
-  private void compareFileGumtree(File file1, File file2) throws Exception {
+/*  private void compareFileGumtree(File file1, File file2) throws Exception {
     ITree src = new JdtTreeGenerator().generateFromFile(file1).getRoot();
     ITree dst = new JdtTreeGenerator().generateFromFile(file2).getRoot();
     Matcher m = Matchers.getInstance().getMatcher(src, dst);
@@ -91,13 +113,13 @@ public class Compare {
     for (Action ac : actions) {
       //Util.log(ac.toString());
     }
-  }
+  }*/
 
-  private void compareFileGumtreeSpoon(File file1, File file2) throws Exception {
+/*  private void compareFileGumtreeSpoon(File file1, File file2) throws Exception {
     AstComparator diff = new AstComparator();
     Diff result = diff.compare(file1, file2);
     result.getAllOperations();
-  }
+  }*/
 
   public static void main(String[] args) throws Exception {
     new Compare().compare();
