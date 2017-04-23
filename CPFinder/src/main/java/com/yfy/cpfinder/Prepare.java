@@ -11,8 +11,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created by yfy on 2017/4/18.
