@@ -38,9 +38,9 @@ public class Compare {
       if (md2 != null) {
         MethodData md1 = map1.get(key);
         if (md1.length > md2.length && md1.callNum < md2.callNum) {
-          Util.log("Compare");
-          Util.log(md1);
-          Util.log(md2);
+//          Util.log("Compare");
+//          Util.log(md1);
+//          Util.log(md2);
         }
       }
     }
@@ -54,10 +54,28 @@ public class Compare {
     parser.setSource(content.toCharArray());
     parser.setKind(ASTParser.K_COMPILATION_UNIT);
     parser.setResolveBindings(true);
-    parser.setBindingsRecovery(true);
+//    parser.setBindingsRecovery(true);
     ASTNode ast = parser.createAST(null);
     Map<String, MethodData> map = new HashMap<>();
     ast.accept(new ASTVisitor() {
+      @Override
+      public boolean visit(ImportDeclaration node) {
+        //Util.log(node);
+        return true;
+      }
+
+      @Override
+      public boolean visit(VariableDeclarationExpression node) {
+        Util.log(node);
+        Util.log(node.getType());
+//        Util.log(node.fragments());
+        for (Object o : node.fragments()) {
+          VariableDeclarationFragment f = (VariableDeclarationFragment) o;
+          Util.log(f.getName());
+        }
+        return true;
+      }
+
       @Override
       public boolean visit(MethodDeclaration node) {
         if (node.getBody() == null) return true;
@@ -66,11 +84,14 @@ public class Compare {
         node.accept(new ASTVisitor() {
           @Override
           public boolean visit(MethodInvocation node) {
-            Util.log("[invoke] " + node);
+            //Util.log("[invoke] " + node);
             Expression exp = node.getExpression();
-            if (exp != null) Util.log(exp.resolveTypeBinding());
-            Util.log(exp);
-            Util.log(node.getName());
+            if (exp != null) {
+              ITypeBinding tb = exp.resolveTypeBinding();
+              if (tb != null) Util.log(tb);
+            }
+            //Util.log(exp);
+            //Util.log(node.getName());
             callNum++;
             return true;
           }
