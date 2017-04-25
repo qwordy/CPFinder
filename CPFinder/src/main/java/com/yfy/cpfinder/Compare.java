@@ -6,6 +6,7 @@ import org.eclipse.jdt.core.dom.*;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -48,6 +49,11 @@ public class Compare {
 
   private int callNum;
 
+  // import classes
+  private HashSet<String> classSet = new HashSet<>();
+
+  private HashMap<String, String> typeMap = new HashMap<>();
+
   private Map<String, MethodData> parseJdt(File file) throws Exception {
     ASTParser parser = ASTParser.newParser(AST.JLS8);
     String content = FileUtils.readFileToString(file, Charset.defaultCharset());
@@ -57,21 +63,28 @@ public class Compare {
 //    parser.setBindingsRecovery(true);
     ASTNode ast = parser.createAST(null);
     Map<String, MethodData> map = new HashMap<>();
+    classSet.clear();
+    typeMap.clear();
     ast.accept(new ASTVisitor() {
       @Override
       public boolean visit(ImportDeclaration node) {
         //Util.log(node);
+        String name = node.getName().toString();
+        if (!name.startsWith("org.apache.hadoop") && !name.startsWith("java"))
+          classSet.add(name.substring(name.lastIndexOf('.')));
         return true;
       }
 
       @Override
       public boolean visit(VariableDeclarationExpression node) {
-        Util.log(node);
-        Util.log(node.getType());
-//        Util.log(node.fragments());
+//        Util.log(node);
+        String type = node.getType().toString();
+        if (type.indexOf('<') != -1)
+          type = type.substring(0, type.indexOf('<'));
         for (Object o : node.fragments()) {
           VariableDeclarationFragment f = (VariableDeclarationFragment) o;
-          Util.log(f.getName());
+          typeMap.put(f.getName().toString(), type);
+          Util.log(f.getName() + " " + type);
         }
         return true;
       }
