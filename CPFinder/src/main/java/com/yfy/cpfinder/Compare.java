@@ -1,5 +1,8 @@
 package com.yfy.cpfinder;
 
+import gumtree.spoon.AstComparator;
+import gumtree.spoon.diff.Diff;
+import gumtree.spoon.diff.operations.Operation;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.*;
 
@@ -26,7 +29,8 @@ public class Compare {
       for (File oldJavaFile : oldDir.listFiles()) {
         String filename = oldJavaFile.getName();
         File newJavaFile = new File(newDir, filename);
-        compareFileJdt(oldJavaFile, newJavaFile);
+        //compareFileJdt(oldJavaFile, newJavaFile);
+        compareFileGumtreeSpoon(oldJavaFile, newJavaFile);
       }
     }
   }
@@ -149,11 +153,17 @@ public class Compare {
     }
   }*/
 
-/*  private void compareFileGumtreeSpoon(File file1, File file2) throws Exception {
+  private void compareFileGumtreeSpoon(File file1, File file2) throws Exception {
     AstComparator diff = new AstComparator();
-    Diff result = diff.compare(file1, file2);
-    result.getAllOperations();
-  }*/
+    try {
+      Diff result = diff.compare(file1, file2);
+      for (Operation op : result.getAllOperations()) {
+        Util.log(op.getNode());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
   public static void main(String[] args) throws Exception {
     new Compare().compare();
