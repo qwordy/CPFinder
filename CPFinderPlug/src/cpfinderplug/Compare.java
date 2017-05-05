@@ -13,13 +13,17 @@ public class Compare {
 
   private void compare(String project) throws Exception {
     File pdir = new File(Config.pairDir + project);
+    Util.log(new File("").getAbsolutePath());
     for (File commit : pdir.listFiles()) {
       File oldDir = new File(commit, "old");
       File newDir = new File(commit, "new");
       for (File oldJavaFile : oldDir.listFiles()) {
         String filename = oldJavaFile.getName();
         File newJavaFile = new File(newDir, filename);
-        
+        Util.log(oldJavaFile);
+        Util.log(newJavaFile);
+        PPA.analyse(oldJavaFile);
+        PPA.analyse(newJavaFile);
       }
     }
   }

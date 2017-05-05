@@ -1,6 +1,7 @@
 package cpfinderplug;
 
 public class Config {
-  public static String projectDir = "../projects/";
-  public static String pairDir = "../pairs/";
+  public static String baseDir = "/home/yfy/stap/CPFinder/";
+  public static String projectDir = baseDir + "projects/";
+  public static String pairDir = baseDir + "pairs/";
 }
