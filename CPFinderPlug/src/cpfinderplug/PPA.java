@@ -29,6 +29,7 @@ public class PPA {
         Name nameNode = node.getName();
         IBinding binding = nameNode.resolveBinding();
         ITypeBinding typeBinding = nameNode.resolveTypeBinding();
+        Util.log(typeBinding);
         return true;
       }
     });
