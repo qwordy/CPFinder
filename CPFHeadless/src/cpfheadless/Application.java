@@ -19,11 +19,20 @@ public class Application implements IApplication {
 	 * @see org.eclipse.equinox.app.IApplication#start(org.eclipse.equinox.app.IApplicationContext)
 	 */
 	public Object start(IApplicationContext context) throws Exception {
+	  try {
+	    new Compare().compare();
+//	    test();
+	  } catch (Exception e) {
+	    e.printStackTrace();
+	  }
+		return IApplication.EXIT_OK;
+	}
+	
+	private void test() {
 	  File javaFile = new File("/home/yfy/workspaceHelios/PPATest/A.java");
     CompilationUnit cu = PPAUtil.getCU(javaFile, new PPAOptions());
     PPATypeVisitor visitor = new PPATypeVisitor(System.out);
     cu.accept(visitor);
-		return IApplication.EXIT_OK;
 	}
 
 	/* (non-Javadoc)

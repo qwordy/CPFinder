@@ -27,11 +27,25 @@ public class Compare {
       File oldDir = new File(commit, "old");
       File newDir = new File(commit, "new");
       for (File oldJavaFile : oldDir.listFiles()) {
+        if (!oldJavaFile.getName().endsWith(".java")) continue;
         String filename = oldJavaFile.getName();
         File newJavaFile = new File(newDir, filename);
         //compareFileJdt(oldJavaFile, newJavaFile);
-        compareFileGumtreeSpoon(oldJavaFile, newJavaFile);
+        spoonDiff(oldJavaFile, newJavaFile);
       }
+    }
+  }
+
+  private void spoonDiff(File file1, File file2) throws Exception {
+    AstComparator diff = new AstComparator();
+    try {
+      Diff result = diff.compare(file1, file2);
+      for (Operation op : result.getAllOperations()) {
+        Util.log(op.getAction());
+        Util.log(op.getNode());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -101,7 +115,9 @@ public class Compare {
         node.accept(new ASTVisitor() {
           @Override
           public boolean visit(MethodInvocation node) {
-            //Util.log("[invoke] " + node);
+            Util.log("[invoke] " + node);
+            Util.log(node.getName());
+            Util.log(node.getExpression());
             Expression exp = node.getExpression();
             if (exp != null) {
               ITypeBinding tb = exp.resolveTypeBinding();
@@ -153,17 +169,7 @@ public class Compare {
     }
   }*/
 
-  private void compareFileGumtreeSpoon(File file1, File file2) throws Exception {
-    AstComparator diff = new AstComparator();
-    try {
-      Diff result = diff.compare(file1, file2);
-      for (Operation op : result.getAllOperations()) {
-        Util.log(op.getNode());
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+
 
   public static void main(String[] args) throws Exception {
     new Compare().compare();
