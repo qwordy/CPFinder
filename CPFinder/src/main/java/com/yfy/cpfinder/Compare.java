@@ -2,9 +2,10 @@ package com.yfy.cpfinder;
 
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.Diff;
-import gumtree.spoon.diff.operations.Operation;
+import gumtree.spoon.diff.operations.*;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.*;
+import spoon.reflect.declaration.CtElement;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -37,16 +38,69 @@ public class Compare {
   }
 
   private void spoonDiff(File file1, File file2) throws Exception {
+    Types types1 = new Types(file1.getPath() + ".ppa");
+    Types types2 = new Types(file2.getPath() + ".ppa");
     AstComparator diff = new AstComparator();
     try {
       Diff result = diff.compare(file1, file2);
-      for (Operation op : result.getAllOperations()) {
-        Util.log(op.getAction());
-        Util.log(op.getNode());
+      //Util.log("[spoonDiff]");
+      for (Operation op : result.getRootOperations()) {
+        if (op instanceof UpdateOperation) {
+          UpdateOperation uop = (UpdateOperation) op;
+          CtElement se = uop.getNode();
+          CtElement de = uop.getDestElement();
+          InvokeData d1 = dealNode(se);
+          InvokeData d2 = dealNode(de);
+          if (d1.callNum > 0 || d2.callNum > 0)
+            Util.log("Call num: " + d1.callNum + " " + d2.callNum);
+//          Util.log("[Update]");
+//          Util.log("  src: " + se);
+//          Util.log("  pos: " + (se == null ? "" : se.getPosition()));
+//          Util.log("  dst: " + de);
+//          Util.log("  pos: " + (de == null ? "" : de.getPosition()));
+        } else if (op instanceof DeleteOperation) {
+          DeleteOperation dop = (DeleteOperation) op;
+          dealNode(dop.getNode());
+//          Util.log("[Delete]");
+//          Util.log("  node: " + dop.getNode());
+//          Util.log("  pos: " + (dop.getNode() == null ? "" : dop.getNode().getPosition()));
+        } else if (op instanceof InsertOperation) {
+          InsertOperation iop = (InsertOperation) op;
+          dealNode(iop.getNode());
+//          Util.log("[Insert]");
+//          Util.log("  node: " + iop.getNode());
+//          Util.log("  pos: " + (iop.getNode() == null ? "" : iop.getNode().getPosition()));
+          //Util.log("  pos: " + iop.getPosition());
+        } else if (op instanceof MoveOperation) {
+          MoveOperation mop = (MoveOperation) op;
+//          Util.log("[Move]");
+//          Util.log("  node: " + mop.getNode());
+//          Util.log("  pos: " + (mop.getNode() == null ? "" : mop.getNode().getPosition()));
+          //Util.log("  pos: " + mop.getPosition());
+        }
+        //Util.log("[spoon] " + op.getNode());
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  private InvokeData dealNode(CtElement node) {
+    if (node == null) return new InvokeData();
+    ASTParser parser = ASTParser.newParser(AST.JLS8);
+    parser.setSource(node.toString().toCharArray());
+    parser.setKind(ASTParser.K_COMPILATION_UNIT);
+    ASTNode ast = parser.createAST(null);
+    InvokeData data = new InvokeData();
+    ast.accept(new ASTVisitor() {
+      @Override
+      public boolean visit(MethodInvocation node) {
+        Util.log("[invoke] " + node);
+        data.callNum++;
+        return true;
+      }
+    });
+    return data;
   }
 
   private void compareFileJdt(File file1, File file2) throws Exception {
