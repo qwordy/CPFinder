@@ -43,6 +43,8 @@ public class Compare {
   private void ppaAnalyse(File file) {
     try {
       String ppaFilename = file.getPath() + ".ppa";
+      File ppaFile = new File(ppaFilename);
+      if (ppaFile.exists() && ppaFile.length() > 0) return;
       final PrintWriter pw = new PrintWriter(ppaFilename);
       CompilationUnit cu = PPAUtil.getCU(file, new PPAOptions());
       cu.accept(new ASTVisitor() {

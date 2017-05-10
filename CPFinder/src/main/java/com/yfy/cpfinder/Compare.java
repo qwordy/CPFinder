@@ -49,9 +49,9 @@ public class Compare {
           UpdateOperation uop = (UpdateOperation) op;
           CtElement se = uop.getNode();
           CtElement de = uop.getDestElement();
-          InvokeData d1 = dealNode(se);
-          InvokeData d2 = dealNode(de);
-          if (d1.callNum > 0 || d2.callNum > 0)
+          InvokeData d1 = dealNode(se, types1);
+          InvokeData d2 = dealNode(de, types2);
+          if (d2.callNum > 0 || d1.callNum > 0)
             Util.log("Call num: " + d1.callNum + " " + d2.callNum);
 //          Util.log("[Update]");
 //          Util.log("  src: " + se);
@@ -60,13 +60,13 @@ public class Compare {
 //          Util.log("  pos: " + (de == null ? "" : de.getPosition()));
         } else if (op instanceof DeleteOperation) {
           DeleteOperation dop = (DeleteOperation) op;
-          dealNode(dop.getNode());
+//          dealNode(dop.getNode());
 //          Util.log("[Delete]");
 //          Util.log("  node: " + dop.getNode());
 //          Util.log("  pos: " + (dop.getNode() == null ? "" : dop.getNode().getPosition()));
         } else if (op instanceof InsertOperation) {
           InsertOperation iop = (InsertOperation) op;
-          dealNode(iop.getNode());
+          //dealNode(iop.getNode(), types2);
 //          Util.log("[Insert]");
 //          Util.log("  node: " + iop.getNode());
 //          Util.log("  pos: " + (iop.getNode() == null ? "" : iop.getNode().getPosition()));
@@ -85,7 +85,7 @@ public class Compare {
     }
   }
 
-  private InvokeData dealNode(CtElement node) {
+  private InvokeData dealNode(CtElement node, Types types) {
     if (node == null) return new InvokeData();
     ASTParser parser = ASTParser.newParser(AST.JLS8);
     parser.setSource(node.toString().toCharArray());
@@ -95,8 +95,10 @@ public class Compare {
     ast.accept(new ASTVisitor() {
       @Override
       public boolean visit(MethodInvocation node) {
-        Util.log("[invoke] " + node);
-        data.callNum++;
+        //Util.log("[invoke] " + node);
+        String type = types.getType(node.toString(), node.getExpression().toString());
+        if (!type.startsWith("org.apache.hadoop"))
+          data.callNum++;
         return true;
       }
     });
