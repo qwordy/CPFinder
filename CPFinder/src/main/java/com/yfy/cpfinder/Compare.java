@@ -200,6 +200,10 @@ public class Compare {
     return map;
   }
 
+  private void parseJdt(File file1, File file2) {
+    
+  }
+
 /*  private void compareFileGumtree(File file1, File file2) throws Exception {
     ITree src = new JdtTreeGenerator().generateFromFile(file1).getRoot();
     ITree dst = new JdtTreeGenerator().generateFromFile(file2).getRoot();
