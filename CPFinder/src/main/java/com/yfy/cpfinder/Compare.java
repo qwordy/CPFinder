@@ -18,6 +18,8 @@ import java.util.Map;
  * Compare change pairs
  */
 public class Compare {
+  Matcher matcher = new Matcher();
+
   public void compare() throws Exception {
     compare("hadoop");
   }
@@ -32,7 +34,8 @@ public class Compare {
         String filename = oldJavaFile.getName();
         File newJavaFile = new File(newDir, filename);
         //compareFileJdt(oldJavaFile, newJavaFile);
-        spoonDiff(oldJavaFile, newJavaFile);
+        //spoonDiff(oldJavaFile, newJavaFile);
+        matcher.match(oldJavaFile, newJavaFile);
       }
     }
   }
@@ -198,10 +201,6 @@ public class Compare {
       }
     });
     return map;
-  }
-
-  private void parseJdt(File file1, File file2) {
-    
   }
 
 /*  private void compareFileGumtree(File file1, File file2) throws Exception {
