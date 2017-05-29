@@ -37,17 +37,17 @@ dependencies {
   // https://mvnrepository.com/artifact/fr.inria.gforge.spoon.labs/gumtree-spoon-ast-diff
   compile group: 'fr.inria.gforge.spoon.labs', name: 'gumtree-spoon-ast-diff', version: '1.0.0'
 
-//  // https://mvnrepository.com/artifact/com.github.gumtreediff/core
-//  compile group: 'com.github.gumtreediff', name: 'core', version: '2.0.0'
-//
-//  // https://mvnrepository.com/artifact/com.github.gumtreediff/gen.jdt
-//  compile group: 'com.github.gumtreediff', name: 'gen.jdt', version: '2.0.0'
-//
-//  // https://mvnrepository.com/artifact/com.github.gumtreediff/client
-//  compile group: 'com.github.gumtreediff', name: 'client', version: '2.0.0'
-//
-//  // https://mvnrepository.com/artifact/com.github.gumtreediff/client.diff
-//  compile group: 'com.github.gumtreediff', name: 'client.diff', version: '2.0.0'
+  // https://mvnrepository.com/artifact/com.github.gumtreediff/core
+  compile group: 'com.github.gumtreediff', name: 'core', version: '2.0.0'
+
+  // https://mvnrepository.com/artifact/com.github.gumtreediff/gen.jdt
+  compile group: 'com.github.gumtreediff', name: 'gen.jdt', version: '2.0.0'
+
+  // https://mvnrepository.com/artifact/com.github.gumtreediff/client
+  compile group: 'com.github.gumtreediff', name: 'client', version: '2.0.0'
+
+  // https://mvnrepository.com/artifact/com.github.gumtreediff/client.diff
+  compile group: 'com.github.gumtreediff', name: 'client.diff', version: '2.0.0'
 
   // The production code uses Guava
   compile 'com.google.guava:guava:20.0'

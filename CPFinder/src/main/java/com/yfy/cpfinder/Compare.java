@@ -1,5 +1,10 @@
 package com.yfy.cpfinder;
 
+import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
+import com.github.gumtreediff.matchers.Mapping;
+import com.github.gumtreediff.matchers.MappingStore;
+import com.github.gumtreediff.matchers.Matchers;
+import com.github.gumtreediff.tree.ITree;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.Diff;
 import gumtree.spoon.diff.operations.*;
@@ -8,6 +13,7 @@ import org.eclipse.jdt.core.dom.*;
 import spoon.reflect.declaration.CtElement;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,13 +35,14 @@ public class Compare {
     for (File commit : pdir.listFiles()) {
       File oldDir = new File(commit, "old");
       File newDir = new File(commit, "new");
-      for (File oldJavaFile : oldDir.listFiles()) {
-        if (!oldJavaFile.getName().endsWith(".java")) continue;
-        String filename = oldJavaFile.getName();
-        File newJavaFile = new File(newDir, filename);
-        //compareFileJdt(oldJavaFile, newJavaFile);
-        //spoonDiff(oldJavaFile, newJavaFile);
-        matcher.match(oldJavaFile, newJavaFile);
+      for (File oldFile : oldDir.listFiles()) {
+        if (!oldFile.getName().endsWith(".java")) continue;
+        String filename = oldFile.getName();
+        File newFile = new File(newDir, filename);
+        //compareFileJdt(oldFile, newFile);
+        //spoonDiff(oldFile, newFile);
+        //matcher.match(oldFile, newFile);
+        compareFileGumtree(oldFile, newFile);
       }
     }
   }
@@ -203,32 +210,74 @@ public class Compare {
     return map;
   }
 
-/*  private void compareFileGumtree(File file1, File file2) throws Exception {
+  private void compareFileGumtree(File file1, File file2) throws Exception {
+    RandomAccessFile raf1 = new RandomAccessFile(file1, "r");
+    RandomAccessFile raf2 = new RandomAccessFile(file2, "r");
+
     ITree src = new JdtTreeGenerator().generateFromFile(file1).getRoot();
     ITree dst = new JdtTreeGenerator().generateFromFile(file2).getRoot();
-    Matcher m = Matchers.getInstance().getMatcher(src, dst);
+    com.github.gumtreediff.matchers.Matcher m = Matchers.getInstance().getMatcher(src, dst);
     m.match();
     MappingStore ms = m.getMappings();
 
     for (Mapping map : ms) {
       ITree t1 = map.getFirst();
       ITree t2 = map.getSecond();
-      Util.log(t1.getType() + " " + t2.getType());
-//      Util.log(t1.getLabel());
-//      Util.log(t2.getLabel());
-//      Util.log(t1.toTreeString());
-//      Util.log(t2.toTreeString());
+      if (!t1.toTreeString().equals(t2.toTreeString())) {
+        Util.log("[false]");
+        dfs(t1, raf1);
+        dfs(t2, raf2);
+//        Util.log(t1.toTreeString());
+//        Util.log(t2.toTreeString());
+//        Util.log(t1.getPos() + " " + t1.getLength());
+//        Util.log(t2.getPos() + " " + t2.getLength());
+      }
+      //Util.log(t1.getType() + " " + t2.getType());
+      //Util.log(t1.getLabel().equals(t2.getLabel()));
+      //Util.log(t2.getLabel());
+      //Util.log(t1.toTreeString().equals(t2.toTreeString()));
+      //Util.log(t2.toTreeString());
     }
 
-    ActionGenerator g = new ActionGenerator(src, dst, ms);
-    g.generate();
-    List<Action> actions = g.getActions();
-    for (Action ac : actions) {
-      //Util.log(ac.toString());
+//    ActionGenerator g = new ActionGenerator(src, dst, ms);
+//    g.generate();
+//    List<Action> actions = g.getActions();
+//    for (Action ac : actions) Util.log(ac.toString());
+  }
+
+  private byte[] buf = new byte[1 << 22];
+
+  private void dfs(ITree node, RandomAccessFile raf) throws Exception {
+    if (node.getType() == ASTNode.METHOD_INVOCATION) {
+      //Util.log("call");
+      Util.log(node.getChildren().size());
+      //Util.log(node.getChildrenLabels());
+
+      raf.seek(node.getPos());
+      raf.read(buf, 0, node.getLength());
+      String str = new String(buf, 0, node.getLength());
+      Util.log(str);
+
+      ASTNode ast = getJdtAst(str);
+      ast.accept(new ASTVisitor() {
+        @Override
+        public boolean visit(MethodInvocation node) {
+          Util.log(node.getExpression());
+          Util.log(node.getName());
+          return false;
+        }
+      });
     }
-  }*/
+    for (ITree t : node.getChildren())
+      dfs(t, raf);
+  }
 
-
+  private ASTNode getJdtAst(String str) {
+    ASTParser parser = ASTParser.newParser(AST.JLS8);
+    parser.setSource(str.toCharArray());
+    parser.setKind(ASTParser.K_EXPRESSION);
+    return parser.createAST(null);
+  }
 
   public static void main(String[] args) throws Exception {
     new Compare().compare();
