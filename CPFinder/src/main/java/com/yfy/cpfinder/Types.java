@@ -1,7 +1,9 @@
 package com.yfy.cpfinder;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import cpfheadless.Type;
+
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +11,24 @@ import java.util.List;
  * Created by yfy on 5/9/17.
  */
 public class Types {
-  private List<Entry> list = new ArrayList<>();
+  private List<Type> list = new ArrayList<>();
+
+  public Types(String filename) {
+    try {
+      //Util.log("Types");
+      ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));
+      while (true) {
+        Type type = (Type) ois.readObject();
+        list.add(type);
+        //Util.log("add");
+      }
+    } catch (Exception e) {
+      //e.printStackTrace();
+    }
+  }
+}
+
+  /*private List<Entry> list = new ArrayList<>();
 
   public Types(String filename) throws Exception {
     BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -17,6 +36,7 @@ public class Types {
     String line2 = br.readLine();
     String line3 = br.readLine();
     while (line1 != null && line2 != null && line3 != null) {
+      Util.log("[ppa]"); Util.log(line1); Util.log(line2); Util.log(line3);
       if (line1.startsWith("Node:") && line2.startsWith("  Expression:") &&
           line3.startsWith("  Type")) {
         //Util.log("[ppa]"); Util.log(line1); Util.log(line2); Util.log(line3);
@@ -25,6 +45,9 @@ public class Types {
         String type = getValue(line3);
         Entry entry = new Entry(node, exp, type);
         list.add(entry);
+        line1 = br.readLine();
+        line2 = br.readLine();
+        line3 = br.readLine();
       } else if (line2.startsWith("Node:")) {
         line1 = line2;
         line2 = br.readLine();
@@ -61,4 +84,4 @@ public class Types {
       this.type = type;
     }
   }
-}
+}*/

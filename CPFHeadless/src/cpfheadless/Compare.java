@@ -1,6 +1,8 @@
 package cpfheadless;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -42,10 +44,16 @@ public class Compare {
 
   private void ppaAnalyse(File file) {
     try {
-      String ppaFilename = file.getPath() + ".ppa";
-      File ppaFile = new File(ppaFilename);
-      if (ppaFile.exists() && ppaFile.length() > 0) return;
-      final PrintWriter pw = new PrintWriter(ppaFilename);
+//      String ppaFilename = file.getPath() + ".ppa";
+//      File ppaFile = new File(ppaFilename);
+//      if (ppaFile.exists() && ppaFile.length() > 0) return;
+//      final PrintWriter pw = new PrintWriter(ppaFilename);
+      
+      String objFilename = file.getPath() + ".obj";
+      File objFile = new File(objFilename);
+      if (objFile.exists() && objFile.length() > 0) return;
+      final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(objFile));
+      
       CompilationUnit cu = PPAUtil.getCU(file, new PPAOptions());
       cu.accept(new ASTVisitor() {
         @Override
@@ -53,18 +61,29 @@ public class Compare {
           Expression exp = node.getExpression();
           if (exp != null) {
             ITypeBinding typeBinding = exp.resolveTypeBinding();
-            pw.println("Node: " + node.toString());
-            if (typeBinding != null) {
-              pw.println("  Expression: " + exp);
-              pw.println("  Type Binding: " + typeBinding.getQualifiedName());
+            Type type = new Type();
+            type.node = node.toString();
+            type.exp = exp.toString();
+            type.type = typeBinding.getQualifiedName();
+            try {
+              oos.writeObject(type);
+            } catch (Exception e) {
+              System.out.println("Exc");
             }
+//            pw.println("Node: " + node.toString());
+//            if (typeBinding != null) {
+//              pw.println("  Expression: " + exp);
+//              pw.println("  Type Binding: " + typeBinding.getQualifiedName());
+//            }
           }
           return true;
         }
       });
-      pw.close();
+      //pw.close();
+      oos.close();
+      System.out.println("Success");
     } catch (Exception e) {
-      e.printStackTrace();
+      System.out.println("Exception");
     }
   }
 

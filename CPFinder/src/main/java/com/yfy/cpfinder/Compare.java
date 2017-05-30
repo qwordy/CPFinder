@@ -106,7 +106,7 @@ public class Compare {
       @Override
       public boolean visit(MethodInvocation node) {
         //Util.log("[invoke] " + node);
-        String type = types.getType(node.toString(), node.getExpression().toString());
+        String type = "";//types.getType(node.toString(), node.getExpression().toString());
         if (!type.startsWith("org.apache.hadoop"))
           data.callNum++;
         return true;
@@ -211,6 +211,8 @@ public class Compare {
   }
 
   private void compareFileGumtree(File file1, File file2) throws Exception {
+    Types types1 = new Types(file1.getPath() + ".obj");
+    Types types2 = new Types(file2.getPath() + ".obj");
     RandomAccessFile raf1 = new RandomAccessFile(file1, "r");
     RandomAccessFile raf2 = new RandomAccessFile(file2, "r");
 
@@ -249,21 +251,21 @@ public class Compare {
 
   private void dfs(ITree node, RandomAccessFile raf) throws Exception {
     if (node.getType() == ASTNode.METHOD_INVOCATION) {
-      //Util.log("call");
-      Util.log(node.getChildren().size());
+      Util.log("[Call]");
+      //Util.log(node.getChildren().size());
       //Util.log(node.getChildrenLabels());
 
       raf.seek(node.getPos());
       raf.read(buf, 0, node.getLength());
       String str = new String(buf, 0, node.getLength());
-      Util.log(str);
+      Util.log("Code: " + str);
 
       ASTNode ast = getJdtAst(str);
       ast.accept(new ASTVisitor() {
         @Override
         public boolean visit(MethodInvocation node) {
-          Util.log(node.getExpression());
-          Util.log(node.getName());
+          Util.log("Exp: " + node.getExpression());
+          Util.log("Name: " + node.getName());
           return false;
         }
       });
