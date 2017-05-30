@@ -4,14 +4,17 @@ import cpfheadless.Type;
 
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by yfy on 5/9/17.
  */
 public class Types {
-  private List<Type> list = new ArrayList<>();
+  //private List<Type> list = new ArrayList<>();
+
+  // Type.node, Type
+  private Map<String, Type> map = new HashMap<>();
 
   public Types(String filename) {
     try {
@@ -19,12 +22,18 @@ public class Types {
       ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));
       while (true) {
         Type type = (Type) ois.readObject();
-        list.add(type);
+        map.put(type.node, type);
         //Util.log("add");
       }
     } catch (Exception e) {
       //e.printStackTrace();
     }
+  }
+
+  public String getType(String node) {
+    Type type = map.get(node);
+    if (type == null) return "";
+    return type.type;
   }
 }
 

@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -20,6 +24,8 @@ import ca.mcgill.cs.swevo.ppa.ui.PPAUtil;
  * 
  */
 public class Compare {
+  private ExecutorService exec = Executors.newFixedThreadPool(1); 
+  
   public void compare() throws Exception {
     compare("hadoop");
   }
@@ -34,9 +40,21 @@ public class Compare {
           continue;
         String filename = oldJavaFile.getName();
         File newJavaFile = new File(newDir, filename);
-
-        ppaAnalyse(oldJavaFile);
-        ppaAnalyse(newJavaFile);
+        
+        Future f1 = exec.submit(new PPATask(oldJavaFile));
+        Future f2 = exec.submit(new PPATask(newJavaFile));
+        try {
+          f1.get(100, TimeUnit.SECONDS);
+        } catch (Exception e) {
+          f1.cancel(true);
+        }
+        try {
+          f2.get(100, TimeUnit.SECONDS);
+        } catch (Exception e) {
+          f2.cancel(true);
+        }
+        //ppaAnalyse(oldJavaFile);
+        //ppaAnalyse(newJavaFile);
         // spoonDiff(oldJavaFile, newJavaFile);
       }
     }

@@ -226,9 +226,12 @@ public class Compare {
       ITree t1 = map.getFirst();
       ITree t2 = map.getSecond();
       if (!t1.toTreeString().equals(t2.toTreeString())) {
-        Util.log("[false]");
-        dfs(t1, raf1);
-        dfs(t2, raf2);
+        Util.log("[Mapping]");
+        InvokeData d1 = new InvokeData();
+        InvokeData d2 = new InvokeData();
+        dfs(t1, raf1, types1, d1);
+        dfs(t2, raf2, types2, d2);
+        Util.log("[CallNum] " + d1.callNum + " " + d2.callNum);
 //        Util.log(t1.toTreeString());
 //        Util.log(t2.toTreeString());
 //        Util.log(t1.getPos() + " " + t1.getLength());
@@ -249,11 +252,9 @@ public class Compare {
 
   private byte[] buf = new byte[1 << 22];
 
-  private void dfs(ITree node, RandomAccessFile raf) throws Exception {
+  private void dfs(ITree node, RandomAccessFile raf, Types types, InvokeData id) throws Exception {
     if (node.getType() == ASTNode.METHOD_INVOCATION) {
       Util.log("[Call]");
-      //Util.log(node.getChildren().size());
-      //Util.log(node.getChildrenLabels());
 
       raf.seek(node.getPos());
       raf.read(buf, 0, node.getLength());
@@ -266,12 +267,16 @@ public class Compare {
         public boolean visit(MethodInvocation node) {
           Util.log("Exp: " + node.getExpression());
           Util.log("Name: " + node.getName());
+          String type = types.getType(node.toString());
+          if (!type.startsWith("org.apache.hadoop"))
+            id.callNum++;
+          Util.log("Type: " + type);
           return false;
         }
       });
     }
     for (ITree t : node.getChildren())
-      dfs(t, raf);
+      dfs(t, raf, types, id);
   }
 
   private ASTNode getJdtAst(String str) {
