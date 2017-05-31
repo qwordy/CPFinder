@@ -17,17 +17,19 @@ public class Types {
   private Map<String, Type> map = new HashMap<>();
 
   public Types(String filename) {
+    ObjectInputStream ois = null;
     try {
       //Util.log("Types");
-      ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));
+      ois = new ObjectInputStream(new FileInputStream(filename));
       while (true) {
         Type type = (Type) ois.readObject();
         map.put(type.node, type);
         //Util.log("add");
       }
-    } catch (Exception e) {
-      //e.printStackTrace();
-    }
+    } catch (Exception e) {}
+    try {
+      if (ois != null) ois.close();
+    } catch (Exception e) {}
   }
 
   public String getType(String node) {

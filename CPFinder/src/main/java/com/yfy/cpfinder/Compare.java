@@ -243,6 +243,8 @@ public class Compare {
       //Util.log(t1.toTreeString().equals(t2.toTreeString()));
       //Util.log(t2.toTreeString());
     }
+    raf1.close();
+    raf2.close();
 
 //    ActionGenerator g = new ActionGenerator(src, dst, ms);
 //    g.generate();
